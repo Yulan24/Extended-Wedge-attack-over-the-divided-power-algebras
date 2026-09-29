@@ -1,0 +1,43 @@
+function Fo(n,p,d)
+    return &+[(-1)^i*Binomial(n,i)*Binomial(n+d-p*i-1,d-p*i):i in [0..d div p]];
+end function;
+
+function Go(n,p,d)
+    return &+[(-1)^(d-p*i)*Binomial(n,d-p*i)*Binomial(n+i-1,i):i in [0..d div p]];
+end function;
+
+function Ho(n,m,p,d)
+    return &+[(-1)^i*Binomial(m,i)*Fo(n,p,d-2*i):i in [0..d div 2]];
+end function;
+
+function macden(n,m,p,d)
+    a:=Floor(Log(p,d div 2));
+    if p eq 2 then
+        b:=&+[Binomial(n,d-2*p^i)*m:i in [0..a]];
+        c:=&+[Binomial(n-d+2*p^i,2*p^i)*Binomial(n,d-2*p^i)*m:i in [0..a]];
+        return Log(2,c/b);
+    else
+        b:=&+[Fo(n,p,d-2*p^i)*m:i in [0..a]];
+        c:=&+[Fo(n,p,2*p^i)*Fo(n,p,d-2*p^i)*m:i in [0..a]];
+        return Log(2,c/b);
+    end if;
+end function;
+
+procedure extcplx(n,v,m,p,q)
+    Q:=[1,1,1,1,1000];
+    A:=Log(2,3*(2*Log(2,q)^2+Log(2,q)));
+    for k in [1..n-v-1] do
+        D:=(n-v-k)*(p-1);
+        for d in [2..D] do
+            if Ho(n-k,m,p,d) le Fo(n-v-k,p,d) then
+                a:=Floor(2*Log(2,Fo(n-k,p,d)-Fo(n-v-k,p,d)+1)+A+macden(n-k,m,p,d));
+                if a le Q[5] then 
+                    Q:=[k,d,Ceiling(Log(2,Fo(n-k,p,d)-Fo(n-v-k,p,d)+1)),Ceiling(macden(n-k,m,p,d)),a];
+                end if;
+            end if;
+        end for;
+    end for;
+    if Q ne [] then
+        printf"add %o linear restrictions\nsolving degree is %o\nlog2N is %o\ndensity is %o\ncomplexity is %o\n",Q[1],Q[2],Q[3],Q[4],Q[5];
+    end if;
+end procedure;

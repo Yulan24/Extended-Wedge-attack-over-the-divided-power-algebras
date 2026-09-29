@@ -1,0 +1,45 @@
+function gammon(u,k)
+    R:=Parent(u);
+    p:=Characteristic(R);
+    if k ge p then 
+        return R!0;
+    elif k eq 0 then
+        return R!1;
+    else
+        return (Factorial(k)^(-1))*u^k;
+    end if;
+end function;
+
+function gamgen(f,k)
+    P:=Parent(f);
+    p:=Characteristic(P);
+    R:=quo<P|Ideal([P.i^p:i in [1..Rank(P)]])>;
+    T:=Terms(f);
+    Q:=[R!T[i]:i in [1..#T]];
+
+    if #T eq 1 then 
+        return gammon(Q[1],k);
+    end if;
+
+    return &+[gammon(Q[1],i)*gamgen(f-T[1],k-i):i in [0..Minimum(p-1,k)]];
+end function;
+
+function extuovhil(n,v,m,p)
+    F:=GF(p);
+    P:=PolynomialRing(F,n);
+    R:=quo<P|Ideal([P.i^p:i in [1..n]])>;
+    d:=Floor(Log(p,(n-v)*(p-1) div 2));
+
+    S:=[P.i+(&+[Random(F)*P.j:j in [v+1..n]]):i in [1..v]] cat [P.i:i in [v+1..n]];
+    G:=[&+[Random(F)*P.i*P.j:i in [1..v],j in [1..n]]:i in [1..m]];
+    G:=[Evaluate(f,S):f in G];
+
+    G:=[gamgen(f,p^i):f in G,i in [0..d]];
+    G:=ideal<R|G>;
+    A<t>:=PolynomialRing(Integers());
+
+    f:=(&+[t^i:i in [0..p-1]])^n*(1-t^2)^m;
+    g:=(&+[t^i:i in [0..p-1]])^(n-v);
+
+    return [HilbertSeries(R)-HilbertSeries(G),&+[Maximum(Coefficient(f,i),Coefficient(g,i))*t^i:i in [0..(n-v)*(p-1)]]];
+end function;
